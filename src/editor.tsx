@@ -1,5 +1,4 @@
 import { useState } from "react";
-import "./App.css";
 import {
   Editor,
   EditorState,
@@ -25,7 +24,7 @@ const styleMap = {
 
 export default function EditorApp() {
   const [editorState, setEditorState] = useState(() => {
-    const savedContent = localStorage.getItem("localstorage");
+    const savedContent = localStorage.getItem("savedContent");
     if (savedContent) {
       try {
         const content = convertFromRaw(JSON.parse(savedContent));
@@ -44,7 +43,7 @@ export default function EditorApp() {
   const saveContent = () => {
     const contentState = editorState.getCurrentContent();
     const raw = convertToRaw(contentState);
-    localStorage.setItem("localstorage", JSON.stringify(raw));
+    localStorage.setItem("savedContent", JSON.stringify(raw));
   };
 
   const handleBeforeInput = (
@@ -143,6 +142,50 @@ export default function EditorApp() {
     return "not-handled";
   };
 
+  const handleKeyCommand = (
+    command: string,
+    editorState: EditorState
+  ): DraftHandleValue => {
+    if (command === "split-block") {
+      const selection = editorState.getSelection();
+      const contentState = editorState.getCurrentContent();
+      const newContentState = Modifier.splitBlock(contentState, selection);
+
+      const newEditorState = EditorState.push(
+        editorState,
+        newContentState,
+        "split-block"
+      );
+      const newBlockKey = newEditorState.getSelection().getStartKey();
+      const newBlock = newEditorState
+        .getCurrentContent()
+        .getBlockForKey(newBlockKey);
+
+      const blockSelection = selection.merge({
+        anchorKey: newBlockKey,
+        focusKey: newBlockKey,
+        anchorOffset: 0,
+        focusOffset: newBlock.getLength(),
+      });
+
+      const contentWithoutStyles = Modifier.applyInlineStyle(
+        newEditorState.getCurrentContent(),
+        blockSelection,
+        "NONE"
+      );
+
+      const finalState = EditorState.push(
+        newEditorState,
+        contentWithoutStyles,
+        "change-inline-style"
+      );
+
+      setEditorState(finalState);
+      return "handled";
+    }
+    return "not-handled";
+  };
+
   return (
     <div className="editor-container">
       <div className="editor-header">
@@ -156,6 +199,7 @@ export default function EditorApp() {
           editorState={editorState}
           onChange={onChange}
           handleBeforeInput={handleBeforeInput}
+          handleKeyCommand={handleKeyCommand}
           customStyleMap={styleMap}
         />
       </div>
