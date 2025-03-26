@@ -72,3 +72,8 @@ src/
   ├── index.css       # Global styles
   └── App.css         # Component-specific styles
 ```
+
+## Links
+
+- live link: https://zicuro-two.vercel.app/
+- codesandbox link: https://codesandbox.io/p/github/mdansarijaved/zicuro/draft/old-sun?workspaceId=ws_R9Dz5FR9kaEeFqxNYc4PsH
