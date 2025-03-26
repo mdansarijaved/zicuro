@@ -157,7 +157,6 @@ export default function EditorApp() {
         "split-block"
       );
 
-      // Get the new block key
       const newBlockKey = newEditorState.getSelection().getStartKey();
       const blockSelection = newEditorState.getSelection().merge({
         anchorKey: newBlockKey,
@@ -166,7 +165,6 @@ export default function EditorApp() {
         focusOffset: 0,
       });
 
-      // Get all inline styles currently applied
       const appliedStyles = newEditorState.getCurrentInlineStyle();
 
       appliedStyles.forEach((style) => {
@@ -181,7 +179,6 @@ export default function EditorApp() {
         );
       });
 
-      // Reset block type of new block explicitly to 'unstyled'
       newEditorState = EditorState.forceSelection(
         newEditorState,
         newEditorState.getSelection()
