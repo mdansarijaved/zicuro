@@ -151,36 +151,52 @@ export default function EditorApp() {
       const contentState = editorState.getCurrentContent();
       const newContentState = Modifier.splitBlock(contentState, selection);
 
-      const newEditorState = EditorState.push(
+      let newEditorState = EditorState.push(
         editorState,
         newContentState,
         "split-block"
       );
-      const newBlockKey = newEditorState.getSelection().getStartKey();
-      const newBlock = newEditorState
-        .getCurrentContent()
-        .getBlockForKey(newBlockKey);
 
-      const blockSelection = selection.merge({
+      // Get the new block key
+      const newBlockKey = newEditorState.getSelection().getStartKey();
+      const blockSelection = newEditorState.getSelection().merge({
         anchorKey: newBlockKey,
         focusKey: newBlockKey,
         anchorOffset: 0,
-        focusOffset: newBlock.getLength(),
+        focusOffset: 0,
       });
 
-      const contentWithoutStyles = Modifier.applyInlineStyle(
-        newEditorState.getCurrentContent(),
-        blockSelection,
-        "NONE"
-      );
+      // Get all inline styles currently applied
+      const appliedStyles = newEditorState.getCurrentInlineStyle();
 
-      const finalState = EditorState.push(
+      appliedStyles.forEach((style) => {
+        newEditorState = EditorState.push(
+          newEditorState,
+          Modifier.removeInlineStyle(
+            newEditorState.getCurrentContent(),
+            blockSelection,
+            style ?? ""
+          ),
+          "change-inline-style"
+        );
+      });
+
+      // Reset block type of new block explicitly to 'unstyled'
+      newEditorState = EditorState.forceSelection(
         newEditorState,
-        contentWithoutStyles,
-        "change-inline-style"
+        newEditorState.getSelection()
       );
 
-      setEditorState(finalState);
+      if (
+        newEditorState
+          .getCurrentContent()
+          .getBlockForKey(newBlockKey)
+          .getType() !== "unstyled"
+      ) {
+        newEditorState = RichUtils.toggleBlockType(newEditorState, "unstyled");
+      }
+
+      setEditorState(newEditorState);
       return "handled";
     }
     return "not-handled";
