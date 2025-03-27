@@ -70,7 +70,6 @@ http://localhost:5173/
 src/
   ├── editor.tsx      # Main editor component
   ├── index.css       # Global styles
-  └── App.css         # Component-specific styles
 ```
 
 ## Links
